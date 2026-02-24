@@ -46,9 +46,18 @@ pub async fn run(output: &Output) -> Result<()> {
         .default(format!("./locales/{{locale}}.{format}"))
         .interact_text()?;
 
+    let api_section = if api_key.is_empty() {
+        "# key = \"your-api-key\" # or set LOCO_API_KEY env var".to_string()
+    } else {
+        format!("key = \"{api_key}\"")
+    };
+
     let config_content = format!(
         r#"# Loco CLI configuration
 # See: https://localise.biz/api
+
+[api]
+{api_section}
 
 [pull]
 format = "{format}"
@@ -61,6 +70,8 @@ path = "{path}"
 
     std::fs::write(CONFIG_FILE, &config_content)?;
     output.success(&format!("Config written to {CONFIG_FILE}"));
-    output.info("Tip: add your API key as LOCO_API_KEY env var or pass --key");
+    if !api_key.is_empty() {
+        output.warn("API key saved to .loco.toml — add it to .gitignore to avoid leaking secrets");
+    }
     Ok(())
 }

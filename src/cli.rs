@@ -154,6 +154,8 @@ pub struct StatusArgs {
 pub enum AuthCommand {
     /// Verify your API key
     Verify,
+    /// Set up and save your API key
+    Init,
 }
 
 // --- Assets ---

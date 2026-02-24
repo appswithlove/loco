@@ -31,8 +31,7 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
         }
 
         Command::Auth { command } => {
-            let (_, client) = build_client(&cli.api_key, &cli.config_path)?;
-            auth::run(&client, &output, command).await?;
+            auth::run(&cli.api_key, &cli.config_path, &output, command).await?;
         }
 
         Command::Pull(args) => {

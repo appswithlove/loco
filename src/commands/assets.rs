@@ -14,7 +14,8 @@ pub async fn run(client: &LocoClient, output: &Output, command: AssetCommand) ->
             asset_type,
             context,
             notes,
-        } => create(client, output, id, text, asset_type, context, notes).await,
+            translate,
+        } => create(client, output, id, text, asset_type, context, notes, translate).await,
         AssetCommand::Delete { id } => delete(client, output, &id).await,
         AssetCommand::Tag { id, tag } => tag_asset(client, output, &id, &tag).await,
         AssetCommand::Untag { id, tag } => untag_asset(client, output, &id, &tag).await,
@@ -66,6 +67,7 @@ async fn create(
     asset_type: Option<String>,
     context: Option<String>,
     notes: Option<String>,
+    translate: Vec<(String, String)>,
 ) -> Result<()> {
     let req = CreateAssetRequest {
         id: id.clone(),
@@ -75,11 +77,16 @@ async fn create(
         asset_type,
     };
     let asset = client.create_asset(&req).await?;
+    output.success(&format!("Created asset: {}", asset.id));
+
+    for (locale, text) in &translate {
+        client.set_translation(&asset.id, locale, text).await?;
+        output.success(&format!("  {locale}: {text}"));
+    }
+
     if output.is_json() {
         output.print_json(&asset)?;
-        return Ok(());
     }
-    output.success(&format!("Created asset: {}", asset.id));
     Ok(())
 }
 

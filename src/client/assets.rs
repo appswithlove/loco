@@ -27,7 +27,7 @@ impl LocoClient {
         let resp = self
             .client()
             .post(self.url("/assets"))
-            .json(req)
+            .form(req)
             .send()
             .await?;
         let resp = self.check_response(resp).await?;

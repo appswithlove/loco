@@ -71,15 +71,15 @@ loco-cli status
 Create a `.loco.toml` file in your project root:
 
 ```toml
-[project]
-api_key = "loco_..."      # or use LOCO_API_KEY env var
+[api]
+key = "your-api-key"       # or use LOCO_API_KEY env var
 
 [pull]
 format = "json"
 path = "./locales/{locale}.json"
 
 [push]
-format = "json"
+index = "id"
 ```
 
 > Add `.loco.toml` to your `.gitignore` if it contains your API key.
@@ -93,11 +93,18 @@ format = "json"
 | `push` | Import local translation files |
 | `status` | Show translation progress |
 | `auth verify` | Verify your API key |
+| `auth init` | Set up and save your API key |
 | `assets list\|get\|create\|delete\|tag\|untag` | Manage translation assets |
 | `locales list\|get\|create\|delete` | Manage project locales |
 | `translations list\|get\|set\|delete\|flag\|unflag` | Manage translations |
 | `tags list\|create\|rename\|delete` | Manage tags |
 | `completions <shell>` | Generate shell completions |
+
+Create an asset with translations in one command:
+
+```sh
+loco-cli assets create welcome --text "Welcome" -t de="Willkommen" -t fr="Bienvenue"
+```
 
 Use `loco-cli <command> --help` for detailed usage of any command.
 

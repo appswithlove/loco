@@ -1,6 +1,16 @@
 use clap::{Parser, Subcommand};
 use clap_complete::Shell;
 
+fn parse_translation(s: &str) -> Result<(String, String), String> {
+    let (locale, text) = s
+        .split_once('=')
+        .ok_or_else(|| format!("expected LOCALE=TEXT, got: {s}"))?;
+    if locale.is_empty() {
+        return Err("locale cannot be empty".to_string());
+    }
+    Ok((locale.to_string(), text.to_string()))
+}
+
 #[derive(Parser, Debug)]
 #[command(
     name = "loco-cli",
@@ -195,6 +205,10 @@ pub enum AssetCommand {
         /// Developer notes
         #[arg(long)]
         notes: Option<String>,
+
+        /// Translations as LOCALE=TEXT (repeatable)
+        #[arg(short = 't', long = "translate", value_parser = parse_translation)]
+        translate: Vec<(String, String)>,
     },
 
     /// Delete an asset

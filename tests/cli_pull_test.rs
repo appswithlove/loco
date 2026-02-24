@@ -125,6 +125,48 @@ async fn pull_custom_path_template() {
 }
 
 #[tokio::test]
+async fn pull_unicode_content() {
+    let server = common::start_mock_server().await;
+    let dir = TempDir::new().unwrap();
+
+    let translations = serde_json::json!({
+        "greeting": "こんにちは",
+        "farewell": "مع السلامة",
+        "emoji": "Hello 👋🌍",
+        "accented": "Ärger mit Ü und ß",
+        "chinese": "你好世界"
+    });
+
+    Mock::given(method("GET"))
+        .and(path("/export/locale/ja.json"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(&translations))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let out_path = dir.path().join("{locale}.{format}");
+
+    common::loco_cmd(&server.uri(), TEST_KEY)
+        .args([
+            "pull",
+            "--locale",
+            "ja",
+            "--path",
+            out_path.to_str().unwrap(),
+        ])
+        .assert()
+        .success();
+
+    let written = std::fs::read_to_string(dir.path().join("ja.json")).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&written).unwrap();
+    assert_eq!(val["greeting"], "こんにちは");
+    assert_eq!(val["farewell"], "مع السلامة");
+    assert_eq!(val["emoji"], "Hello 👋🌍");
+    assert_eq!(val["accented"], "Ärger mit Ü und ß");
+    assert_eq!(val["chinese"], "你好世界");
+}
+
+#[tokio::test]
 async fn pull_missing_api_key() {
     let mut cmd = assert_cmd::Command::cargo_bin("loco-cli").expect("binary exists");
     cmd.env("LOCO_API_URL", "http://127.0.0.1:1")

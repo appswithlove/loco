@@ -35,6 +35,35 @@ async fn push_file_success() {
 }
 
 #[tokio::test]
+async fn push_unicode_content() {
+    let server = common::start_mock_server().await;
+
+    let mut f = NamedTempFile::with_suffix(".json").unwrap();
+    write!(
+        f,
+        r#"{{"greeting":"こんにちは","emoji":"👋🌍","german":"Ärger mit ß"}}"#
+    )
+    .unwrap();
+
+    Mock::given(method("POST"))
+        .and(path("/import/json"))
+        .and(header("Authorization", &format!("Loco {TEST_KEY}")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "message": "3 translations imported",
+            "status": 200
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    common::loco_cmd(&server.uri(), TEST_KEY)
+        .args(["push", "--file", f.path().to_str().unwrap()])
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("Import complete"));
+}
+
+#[tokio::test]
 async fn push_file_not_found() {
     let server = common::start_mock_server().await;
 

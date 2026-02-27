@@ -29,7 +29,7 @@ impl Output {
     pub fn error(&self, msg: &str) {
         if self.json_mode {
             let val = serde_json::json!({"error": msg});
-            let _ = println!("{}", serde_json::to_string_pretty(&val).unwrap_or_default());
+            println!("{}", serde_json::to_string_pretty(&val).unwrap_or_default());
             return;
         }
         let _ = self

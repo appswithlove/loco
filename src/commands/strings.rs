@@ -131,6 +131,7 @@ async fn get_one(client: &LocoClient, output: &Output, id: &str, locale: &str) -
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn add(
     client: &LocoClient,
     output: &Output,

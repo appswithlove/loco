@@ -1,4 +1,4 @@
-# loco-cli
+# loco
 
 A command-line interface for the [localise.biz](https://localise.biz) translation management API.
 
@@ -7,7 +7,7 @@ A command-line interface for the [localise.biz](https://localise.biz) translatio
 - **Pull/push translations** in 30+ formats (JSON, PO, XLIFF, Strings, YAML, and more)
 - **Interactive project setup** with guided configuration
 - **Translation progress dashboard** showing completion per locale
-- **Full CRUD** for assets, locales, translations, and tags
+- **Full CRUD** for strings, locales, and tags
 - **Shell completions** for bash, zsh, fish, and PowerShell
 - **JSON output mode** for scripting and CI pipelines
 - **Cross-platform** support for macOS, Linux, and Windows
@@ -17,19 +17,14 @@ A command-line interface for the [localise.biz](https://localise.biz) translatio
 ### From GitHub Releases
 
 Download the latest binary for your platform from
-[Releases](https://github.com/user/loco-cli/releases/latest).
+[Releases](https://github.com/appswithlove/loco/releases/latest).
 
 ### From source
 
 ```sh
-cargo install --git https://github.com/user/loco-cli
+cargo install --git https://github.com/appswithlove/loco
 ```
 
-### From crates.io (when published)
-
-```sh
-cargo install loco-cli
-```
 
 ## Quick Start
 
@@ -42,7 +37,7 @@ export LOCO_API_KEY=your-api-key-here
 Or run interactive setup:
 
 ```sh
-loco-cli init
+loco init
 ```
 
 > **Security note:** Never commit API keys to version control. Use environment
@@ -51,45 +46,45 @@ loco-cli init
 ### 2. Pull translations
 
 ```sh
-loco-cli pull --format json --locale en --path ./locales/{locale}.json
+loco pull --format json --locale en --path ./locales/{locale}.json
 ```
 
 ### 3. Push translations
 
 ```sh
-loco-cli push --file ./locales/en.json --locale en
+loco push --file ./locales/en.json --locale en
 ```
 
 ### 4. Check progress
 
 ```sh
-loco-cli status
+loco status
 ```
 
 ## Commands
 
 | Command | Description |
 |---|---|
+| Command | Description |
+|---|---|
 | `init` | Interactive project setup |
 | `pull` | Export translations to local files |
 | `push` | Import local translation files |
 | `status` | Show translation progress |
-| `auth verify` | Verify your API key |
-| `auth init` | Set up and save your API key |
-| `assets` | Manage translation assets |
+| `auth` | Authentication commands |
+| `strings` | Manage translatable strings |
 | `locales` | Manage project locales |
-| `translations` | Manage translations |
 | `tags` | Manage tags |
 | `completions` | Generate shell completions |
 
-Use `loco-cli <command> --help` for detailed usage of any command.
+Use `loco <command> --help` for detailed usage of any command.
 
 ### `init`
 
 Interactive setup wizard. Prompts for your API key, verifies it, and writes a `.loco.toml` config file with your chosen export format and output path.
 
 ```sh
-loco-cli init
+loco init
 ```
 
 ### `pull`
@@ -98,13 +93,13 @@ Export translations from Loco to local files. Exports all locales by default wit
 
 ```sh
 # Export all locales as JSON
-loco-cli pull --format json --path ./locales/{locale}.json
+loco pull --format json --path ./locales/{locale}.json
 
 # Export a single locale
-loco-cli pull --locale en --format po --path ./locales/{locale}.po
+loco pull --locale en --format po --path ./locales/{locale}.po
 
 # Filter by tag or status
-loco-cli pull --filter mobile --status translated
+loco pull --filter mobile --status translated
 ```
 
 | Flag | Description |
@@ -112,7 +107,7 @@ loco-cli pull --filter mobile --status translated
 | `--format <FMT>` | Export format: `json`, `po`, `xlf`, `strings`, `yml`, `xml`, `csv`, etc. (default: `json`) |
 | `--locale <CODE>` | Export a single locale (default: all) |
 | `--path <TEMPLATE>` | Output path with `{locale}` and `{format}` placeholders (default: `./{locale}.{format}`) |
-| `--filter <TAG>` | Filter assets by tag |
+| `--filter <TAG>` | Filter by tag |
 | `--status <STATUS>` | Filter by translation status |
 
 Defaults can be set in `.loco.toml` under `[pull]`.
@@ -123,13 +118,13 @@ Import a local translation file into Loco. Detects format from file extension if
 
 ```sh
 # Import a JSON file
-loco-cli push --file ./locales/en.json --locale en
+loco push --file ./locales/en.json --locale en
 
 # Import with async polling
-loco-cli push --file ./locales/de.po --locale de --async
+loco push --file ./locales/de.po --locale de --async
 
 # Tag newly created assets
-loco-cli push --file ./messages.json --tag-new v2
+loco push --file ./messages.json --tag-new v2
 ```
 
 | Flag | Description |
@@ -137,7 +132,7 @@ loco-cli push --file ./messages.json --tag-new v2
 | `--file <PATH>` | File to upload (required) |
 | `--locale <CODE>` | Locale of the file |
 | `--format <FMT>` | Format hint (auto-detected from extension) |
-| `--tag-new <TAG>` | Tag assets created during import |
+| `--tag-new <TAG>` | Tag strings created during import |
 | `--async` | Run import asynchronously with progress polling |
 | `--index <MODE>` | Key mapping: `id` or `text` |
 
@@ -147,13 +142,13 @@ Show translation progress per locale with color-coded completion percentages.
 
 ```sh
 # All locales
-loco-cli status
+loco status
 
 # Single locale
-loco-cli status --locale fr
+loco status --locale fr
 
 # JSON output for CI
-loco-cli status --json
+loco status --json
 ```
 
 | Flag | Description |
@@ -166,70 +161,91 @@ Authentication commands.
 
 ```sh
 # Verify your API key works
-loco-cli auth verify
+loco auth verify
 
 # Interactive API key setup (prompts, verifies, saves to .loco.toml)
-loco-cli auth init
+loco auth init
 ```
 
-### `assets`
+### `strings`
 
-Manage translatable assets. Maps to the [Loco Assets API](https://localise.biz/api/docs/assets).
+Manage translatable strings and their translations.
+
+**Add a string** — one-liner with inline translations:
 
 ```sh
-# List all assets
-loco-cli assets list
+loco strings add welcome.title en=Welcome de=Willkommen fr=Bienvenue
+```
 
-# List assets filtered by tag
-loco-cli assets list --filter mobile
+**Add a string** — interactive mode (just omit translations):
 
-# List translations for a specific asset
-loco-cli assets list welcome.title
+```sh
+$ loco strings add welcome.title
+Source text (en): Welcome
+Add translations (LOCALE=TEXT, empty to finish):
+> de=Willkommen
+> fr=Bienvenue
+>
+```
 
-# Get asset details with all translations
-loco-cli assets get welcome.title
+**Other operations:**
 
-# Create an asset
-loco-cli assets create welcome.title --text "Welcome" --type text --notes "Homepage heading"
+```sh
+# List all strings
+loco strings list
+loco strings list --filter mobile
 
-# Create with inline translations
-loco-cli assets create welcome.title --text "Welcome" -t de="Willkommen" -t fr="Bienvenue"
+# Get string details with all translations
+loco strings get welcome.title
 
-# Create or update if exists
-loco-cli assets create welcome.title --text "Welcome" --update
+# Get a single translation
+loco strings get welcome.title fr
 
-# Set a single translation (optionally create the asset)
-loco-cli assets set welcome.title en --text "Welcome" --create
+# Set a translation
+loco strings set welcome.title fr --text "Bienvenue"
 
-# Delete an asset
-loco-cli assets delete welcome.title
+# Set a translation, creating the string if needed
+loco strings set welcome.title fr --text "Bienvenue" --create
+
+# Remove a single translation
+loco strings rm welcome.title fr
+
+# Delete a string and all its translations
+loco strings delete welcome.title
 
 # Tag / untag
-loco-cli assets tag welcome.title mobile
-loco-cli assets untag welcome.title mobile
+loco strings tag welcome.title mobile
+loco strings untag welcome.title mobile
+
+# Flag / unflag a translation
+loco strings flag welcome.title fr --flag fuzzy
+loco strings unflag welcome.title fr
 ```
 
 **Subcommands:**
 
 | Subcommand | Description |
 |---|---|
-| `list [ID] [--filter TAG]` | List all assets, or translations for a specific asset |
-| `get <ID>` | Get asset details with translations |
-| `create <ID> [--text TEXT] [--type TYPE] [--context CTX] [--notes NOTES] [-t LOCALE=TEXT...] [--update]` | Create a new asset |
-| `set <ID> <LOCALE> --text TEXT [--create]` | Set a translation for an asset |
-| `delete <ID>` | Delete an asset |
-| `tag <ID> <TAG>` | Add a tag to an asset |
-| `untag <ID> <TAG>` | Remove a tag from an asset |
+| `list [--filter TAG]` | List all strings |
+| `get <ID> [LOCALE]` | Get string details, or a single translation |
+| `add <ID> [LOCALE=TEXT...] [--type --context --notes --update]` | Add a new string with translations |
+| `set <ID> <LOCALE> --text TEXT [--create]` | Set a translation |
+| `rm <ID> <LOCALE>` | Remove a single translation |
+| `delete <ID>` | Delete a string and all translations |
+| `tag <ID> <TAG>` | Add a tag |
+| `untag <ID> <TAG>` | Remove a tag |
+| `flag <ID> <LOCALE> [--flag VALUE]` | Flag a translation |
+| `unflag <ID> <LOCALE>` | Unflag a translation |
 
 ### `locales`
 
-Manage project locales. Maps to the [Loco Locales API](https://localise.biz/api/docs/locales).
+Manage project locales.
 
 ```sh
-loco-cli locales list
-loco-cli locales get fr-FR
-loco-cli locales create fr-FR
-loco-cli locales delete fr-FR
+loco locales list
+loco locales get fr-FR
+loco locales create fr-FR
+loco locales delete fr-FR
 ```
 
 | Subcommand | Description |
@@ -239,46 +255,15 @@ loco-cli locales delete fr-FR
 | `create <CODE>` | Create a new locale |
 | `delete <CODE>` | Delete a locale |
 
-### `translations`
-
-Manage individual translations. Maps to the [Loco Translations API](https://localise.biz/api/docs/translations).
-
-```sh
-# List all translations for an asset
-loco-cli translations list welcome.title
-
-# Get a specific translation
-loco-cli translations get welcome.title fr
-
-# Set a translation
-loco-cli translations set welcome.title fr --text "Bienvenue"
-
-# Delete a translation
-loco-cli translations delete welcome.title fr
-
-# Flag / unflag
-loco-cli translations flag welcome.title fr --flag fuzzy
-loco-cli translations unflag welcome.title fr
-```
-
-| Subcommand | Description |
-|---|---|
-| `list <ASSET_ID>` | List translations for an asset |
-| `get <ASSET_ID> <LOCALE>` | Get a specific translation |
-| `set <ASSET_ID> <LOCALE> --text TEXT` | Set a translation value |
-| `delete <ASSET_ID> <LOCALE>` | Delete a translation |
-| `flag <ASSET_ID> <LOCALE> [--flag VALUE]` | Flag a translation |
-| `unflag <ASSET_ID> <LOCALE>` | Unflag a translation |
-
 ### `tags`
 
-Manage project tags. Maps to the [Loco Tags API](https://localise.biz/api/docs/tags).
+Manage project tags.
 
 ```sh
-loco-cli tags list
-loco-cli tags create mobile
-loco-cli tags rename mobile app
-loco-cli tags delete app
+loco tags list
+loco tags create mobile
+loco tags rename mobile app
+loco tags delete app
 ```
 
 | Subcommand | Description |
@@ -290,20 +275,19 @@ loco-cli tags delete app
 
 ### `completions`
 
-Generate shell completions.
+Generate shell completions. Use `--install` to write to the standard location automatically.
 
 ```sh
-# bash
-loco-cli completions bash > ~/.bash_completion.d/loco-cli
+# Auto-install (recommended)
+loco completions zsh --install
+loco completions bash --install
+loco completions fish --install
 
-# zsh
-loco-cli completions zsh > ~/.zfunc/_loco-cli
-
-# fish
-loco-cli completions fish > ~/.config/fish/completions/loco-cli.fish
-
-# PowerShell
-loco-cli completions powershell > _loco-cli.ps1
+# Or pipe manually
+loco completions zsh > ~/.zfunc/_loco
+loco completions bash > ~/.bash_completion.d/loco
+loco completions fish > ~/.config/fish/completions/loco.fish
+loco completions powershell > _loco.ps1
 ```
 
 ## Global Flags

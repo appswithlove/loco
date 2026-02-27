@@ -99,11 +99,56 @@ pub struct Translation {
     #[serde(rename = "type")]
     pub translation_type: Option<String>,
     pub translated: bool,
+    #[serde(deserialize_with = "deserialize_flagged")]
     pub flagged: Option<String>,
     pub status: Option<String>,
     pub translation: String,
     pub revision: Option<u32>,
     pub modified: Option<String>,
+}
+
+/// The Loco API returns `false` when unflagged, or a string like `"fuzzy"` when flagged.
+fn deserialize_flagged<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::de;
+
+    struct FlaggedVisitor;
+
+    impl<'de> de::Visitor<'de> for FlaggedVisitor {
+        type Value = Option<String>;
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("a string or boolean false")
+        }
+
+        fn visit_bool<E: de::Error>(self, v: bool) -> Result<Self::Value, E> {
+            if v {
+                Ok(Some("flagged".to_string()))
+            } else {
+                Ok(None)
+            }
+        }
+
+        fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
+            if v.is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(v.to_string()))
+            }
+        }
+
+        fn visit_none<E: de::Error>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+
+        fn visit_unit<E: de::Error>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+    }
+
+    deserializer.deserialize_any(FlaggedVisitor)
 }
 
 // Import

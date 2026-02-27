@@ -27,7 +27,7 @@ impl LocoClient {
 
         let http = reqwest::Client::builder()
             .default_headers(headers)
-            .user_agent(format!("loco-cli/{}", env!("CARGO_PKG_VERSION")))
+            .user_agent(format!("loco/{}", env!("CARGO_PKG_VERSION")))
             .build()?;
 
         Ok(Self {

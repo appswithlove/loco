@@ -25,7 +25,7 @@ key = "{api_key}"
 /// Build an assert_cmd Command for loco-cli pointing at the mock server.
 /// Sets LOCO_API_URL and LOCO_API_KEY env vars.
 pub fn loco_cmd(server_url: &str, api_key: &str) -> Command {
-    let mut cmd = Command::cargo_bin("loco-cli").expect("binary exists");
+    let mut cmd = Command::cargo_bin("loco").expect("binary exists");
     cmd.env("LOCO_API_URL", server_url);
     cmd.env("LOCO_API_KEY", api_key);
     // Prevent picking up a real .loco.toml from the filesystem

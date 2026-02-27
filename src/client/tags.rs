@@ -23,7 +23,7 @@ impl LocoClient {
         let resp = self
             .client()
             .patch(self.url(&format!("/tags/{old}.json")))
-            .form(&[("name", new)])
+            .json(&serde_json::json!({"name": new}))
             .send()
             .await?;
         self.check_response(resp).await?;

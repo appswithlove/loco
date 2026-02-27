@@ -38,25 +38,25 @@ jobs:
 
       - name: Rename binary (unix)
         if: runner.os != 'Windows'
-        run: mv target/${{ matrix.target }}/release/loco-cli loco-cli-${{ matrix.target }}
+        run: mv target/${{ matrix.target }}/release/loco loco-${{ matrix.target }}
 
       - name: Rename binary (windows)
         if: runner.os == 'Windows'
-        run: mv target/${{ matrix.target }}/release/loco-cli.exe loco-cli-${{ matrix.target }}.exe
+        run: mv target/${{ matrix.target }}/release/loco.exe loco-${{ matrix.target }}.exe
 
       - name: Upload artifact (unix)
         if: runner.os != 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: loco-cli-${{ matrix.target }}
-          path: loco-cli-${{ matrix.target }}
+          name: loco-${{ matrix.target }}
+          path: loco-${{ matrix.target }}
 
       - name: Upload artifact (windows)
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: loco-cli-${{ matrix.target }}
-          path: loco-cli-${{ matrix.target }}.exe
+          name: loco-${{ matrix.target }}
+          path: loco-${{ matrix.target }}.exe
 
   release:
     needs: build

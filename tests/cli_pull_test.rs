@@ -168,7 +168,7 @@ async fn pull_unicode_content() {
 
 #[tokio::test]
 async fn pull_missing_api_key() {
-    let mut cmd = assert_cmd::Command::cargo_bin("loco-cli").expect("binary exists");
+    let mut cmd = assert_cmd::Command::cargo_bin("loco").expect("binary exists");
     cmd.env("LOCO_API_URL", "http://127.0.0.1:1")
         .env_remove("LOCO_API_KEY")
         .args([

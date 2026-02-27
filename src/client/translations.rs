@@ -55,13 +55,13 @@ impl LocoClient {
         locale: &str,
         flag: Option<&str>,
     ) -> Result<(), LocoError> {
-        let mut req = self
+        let flag_value = flag.unwrap_or("fuzzy");
+        let resp = self
             .client()
-            .post(self.url(&format!("/translations/{id}/{locale}/flag")));
-        if let Some(f) = flag {
-            req = req.form(&[("flag", f)]);
-        }
-        let resp = req.send().await?;
+            .post(self.url(&format!("/translations/{id}/{locale}/flag")))
+            .form(&[("flag", flag_value)])
+            .send()
+            .await?;
         self.check_response(resp).await?;
         Ok(())
     }

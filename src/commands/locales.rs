@@ -8,7 +8,7 @@ pub async fn run(client: &LocoClient, output: &Output, command: LocaleCommand) -
         LocaleCommand::List => list(client, output).await,
         LocaleCommand::Get { code } => get(client, output, &code).await,
         LocaleCommand::Create { code } => create(client, output, &code).await,
-        LocaleCommand::Delete { code } => delete(client, output, &code).await,
+        LocaleCommand::Delete { code, force } => delete(client, output, &code, force).await,
     }
 }
 
@@ -58,7 +58,11 @@ async fn create(client: &LocoClient, output: &Output, code: &str) -> Result<()> 
     Ok(())
 }
 
-async fn delete(client: &LocoClient, output: &Output, code: &str) -> Result<()> {
+async fn delete(client: &LocoClient, output: &Output, code: &str, force: bool) -> Result<()> {
+    if !output.confirm_or_force(&format!("Delete locale \"{code}\"?"), force) {
+        output.info("Aborted");
+        return Ok(());
+    }
     client.delete_locale(code).await?;
     output.success(&format!("Deleted locale: {code}"));
     Ok(())

@@ -8,7 +8,7 @@ pub async fn run(client: &LocoClient, output: &Output, command: TagCommand) -> R
         TagCommand::List => list(client, output).await,
         TagCommand::Create { name } => create(client, output, &name).await,
         TagCommand::Rename { old, new } => rename(client, output, &old, &new).await,
-        TagCommand::Delete { name } => delete(client, output, &name).await,
+        TagCommand::Delete { name, force } => delete(client, output, &name, force).await,
     }
 }
 
@@ -37,7 +37,11 @@ async fn rename(client: &LocoClient, output: &Output, old: &str, new: &str) -> R
     Ok(())
 }
 
-async fn delete(client: &LocoClient, output: &Output, name: &str) -> Result<()> {
+async fn delete(client: &LocoClient, output: &Output, name: &str, force: bool) -> Result<()> {
+    if !output.confirm_or_force(&format!("Delete tag \"{name}\"?"), force) {
+        output.info("Aborted");
+        return Ok(());
+    }
     client.delete_tag(name).await?;
     output.success(&format!("Deleted tag: {name}"));
     Ok(())

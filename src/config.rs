@@ -37,12 +37,13 @@ pub struct ResolvedConfig {
     pub base_url: String,
     pub pull: PullConfig,
     pub push: PushConfig,
+    pub config_path: Option<PathBuf>,
 }
 
 impl ResolvedConfig {
     /// Load config by merging: CLI flags > env vars > config file > defaults
     pub fn load(cli_key: Option<&str>, cli_config_path: Option<&str>) -> Result<Self, LocoError> {
-        let config_file = load_config_file(cli_config_path)?;
+        let (config_file, config_path) = load_config_file(cli_config_path)?;
 
         let api_key = cli_key
             .map(String::from)
@@ -63,26 +64,35 @@ impl ResolvedConfig {
             base_url,
             pull: config_file.pull,
             push: config_file.push,
+            config_path,
         })
     }
 }
 
-fn load_config_file(explicit_path: Option<&str>) -> Result<ConfigFile, LocoError> {
+fn load_config_file(
+    explicit_path: Option<&str>,
+) -> Result<(ConfigFile, Option<PathBuf>), LocoError> {
     let path = if let Some(p) = explicit_path {
-        PathBuf::from(p)
+        Some(PathBuf::from(p))
     } else {
-        find_config_file().unwrap_or_else(|| PathBuf::from(CONFIG_FILENAME))
+        find_config_file()
+    };
+
+    let Some(path) = path else {
+        return Ok((ConfigFile::default(), None));
     };
 
     if !path.exists() {
-        return Ok(ConfigFile::default());
+        return Ok((ConfigFile::default(), None));
     }
 
     let content = std::fs::read_to_string(&path)
         .map_err(|e| LocoError::Config(format!("Failed to read {}: {e}", path.display())))?;
 
-    toml::from_str(&content)
-        .map_err(|e| LocoError::Config(format!("Invalid config in {}: {e}", path.display())))
+    let config = toml::from_str(&content)
+        .map_err(|e| LocoError::Config(format!("Invalid config in {}: {e}", path.display())))?;
+
+    Ok((config, Some(path)))
 }
 
 /// Walk up from cwd to find .loco.toml

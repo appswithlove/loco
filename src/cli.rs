@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use clap_complete::Shell;
 
-fn parse_translation(s: &str) -> Result<(String, String), String> {
+pub fn parse_translation(s: &str) -> Result<(String, String), String> {
     let (locale, text) = s
         .split_once('=')
         .ok_or_else(|| format!("expected LOCALE=TEXT, got: {s}"))?;
@@ -13,26 +13,26 @@ fn parse_translation(s: &str) -> Result<(String, String), String> {
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "loco-cli",
+    name = "loco",
     about = "CLI for the localise.biz translation management API",
     version,
     propagate_version = true
 )]
 pub struct Cli {
     /// Loco API key (overrides config/env)
-    #[arg(long = "key", global = true, env = "LOCO_API_KEY")]
+    #[arg(short = 'k', long = "key", global = true, env = "LOCO_API_KEY")]
     pub api_key: Option<String>,
 
     /// Path to config file
-    #[arg(long = "config", global = true)]
+    #[arg(short = 'c', long = "config", global = true)]
     pub config_path: Option<String>,
 
     /// Suppress non-essential output
-    #[arg(long, global = true)]
+    #[arg(short = 'q', long, global = true)]
     pub quiet: bool,
 
     /// Enable verbose output
-    #[arg(long, global = true)]
+    #[arg(short = 'v', long, global = true)]
     pub verbose: bool,
 
     /// Disable colored output
@@ -40,7 +40,7 @@ pub struct Cli {
     pub no_color: bool,
 
     /// Output as JSON
-    #[arg(long, global = true)]
+    #[arg(short = 'j', long, global = true)]
     pub json: bool,
 
     #[command(subcommand)]
@@ -67,22 +67,16 @@ pub enum Command {
         command: AuthCommand,
     },
 
-    /// Manage translation assets
-    Assets {
+    /// Manage translatable strings
+    Strings {
         #[command(subcommand)]
-        command: AssetCommand,
+        command: StringCommand,
     },
 
     /// Manage project locales
     Locales {
         #[command(subcommand)]
         command: LocaleCommand,
-    },
-
-    /// Manage translations
-    Translations {
-        #[command(subcommand)]
-        command: TranslationCommand,
     },
 
     /// Manage tags
@@ -96,6 +90,10 @@ pub enum Command {
         /// Shell to generate completions for
         #[arg(value_enum)]
         shell: Shell,
+
+        /// Install completions to the standard location
+        #[arg(long)]
+        install: bool,
     },
 }
 
@@ -104,15 +102,15 @@ pub enum Command {
 #[derive(Parser, Debug)]
 pub struct PullArgs {
     /// Export format (json, po, xlf, strings, yml, etc.)
-    #[arg(long)]
+    #[arg(short = 'f', long)]
     pub format: Option<String>,
 
     /// Single locale code to export (default: all)
-    #[arg(long)]
+    #[arg(short = 'l', long)]
     pub locale: Option<String>,
 
     /// Output path template ({locale} placeholder)
-    #[arg(long)]
+    #[arg(short = 'p', long)]
     pub path: Option<String>,
 
     /// Filter by tag
@@ -120,7 +118,7 @@ pub struct PullArgs {
     pub filter: Option<String>,
 
     /// Filter by translation status
-    #[arg(long)]
+    #[arg(short = 's', long)]
     pub status: Option<String>,
 }
 
@@ -131,15 +129,15 @@ pub struct PushArgs {
     pub file: String,
 
     /// Locale of the file
-    #[arg(long)]
+    #[arg(short = 'l', long)]
     pub locale: Option<String>,
 
     /// Format hint (e.g. json, po, xlf)
-    #[arg(long)]
+    #[arg(short = 'f', long)]
     pub format: Option<String>,
 
     /// Tag new assets with this tag
-    #[arg(long)]
+    #[arg(short = 't', long)]
     pub tag_new: Option<String>,
 
     /// Run import asynchronously
@@ -154,7 +152,7 @@ pub struct PushArgs {
 #[derive(Parser, Debug)]
 pub struct StatusArgs {
     /// Show progress for a specific locale
-    #[arg(long)]
+    #[arg(short = 'l', long)]
     pub locale: Option<String>,
 }
 
@@ -168,31 +166,33 @@ pub enum AuthCommand {
     Init,
 }
 
-// --- Assets ---
+// --- Strings ---
 
 #[derive(Subcommand, Debug)]
-pub enum AssetCommand {
-    /// List all assets
+pub enum StringCommand {
+    /// List all strings
     List {
         /// Filter by tag
         #[arg(long)]
         filter: Option<String>,
     },
 
-    /// Get a single asset by ID
+    /// Get string details (optionally for a single locale)
     Get {
-        /// Asset ID
+        /// String ID
         id: String,
+        /// Locale code (omit to show all translations)
+        locale: Option<String>,
     },
 
-    /// Create a new asset
-    Create {
-        /// Asset ID (key)
+    /// Add a new string with translations (interactive prompt if no translations given)
+    Add {
+        /// String ID (key)
         id: String,
 
-        /// Source text
-        #[arg(long)]
-        text: Option<String>,
+        /// Translations as LOCALE=TEXT (e.g. en=Hello de=Hallo)
+        #[arg(value_parser = parse_translation)]
+        translations: Vec<(String, String)>,
 
         /// Asset type
         #[arg(long, name = "type")]
@@ -206,31 +206,73 @@ pub enum AssetCommand {
         #[arg(long)]
         notes: Option<String>,
 
-        /// Translations as LOCALE=TEXT (repeatable)
-        #[arg(short = 't', long = "translate", value_parser = parse_translation)]
-        translate: Vec<(String, String)>,
+        /// Update if string already exists instead of failing
+        #[arg(long)]
+        update: bool,
     },
 
-    /// Delete an asset
+    /// Delete a string and all its translations
     Delete {
-        /// Asset ID
+        /// String ID
         id: String,
+        /// Skip confirmation prompt
+        #[arg(short = 'y', long)]
+        force: bool,
     },
 
-    /// Add a tag to an asset
+    /// Set translations for a string
+    Set {
+        /// String ID
+        id: String,
+        /// Translations as LOCALE=TEXT (e.g. en=Hello de=Hallo)
+        #[arg(value_parser = parse_translation, required = true)]
+        translations: Vec<(String, String)>,
+        /// Create the string if it doesn't exist
+        #[arg(long)]
+        create: bool,
+    },
+
+    /// Remove a single translation
+    Rm {
+        /// String ID
+        id: String,
+        /// Locale code
+        locale: String,
+    },
+
+    /// Add a tag to a string
     Tag {
-        /// Asset ID
+        /// String ID
         id: String,
         /// Tag name
         tag: String,
     },
 
-    /// Remove a tag from an asset
+    /// Remove a tag from a string
     Untag {
-        /// Asset ID
+        /// String ID
         id: String,
         /// Tag name
         tag: String,
+    },
+
+    /// Flag a translation
+    Flag {
+        /// String ID
+        id: String,
+        /// Locale code
+        locale: String,
+        /// Flag value
+        #[arg(long)]
+        flag: Option<String>,
+    },
+
+    /// Unflag a translation
+    Unflag {
+        /// String ID
+        id: String,
+        /// Locale code
+        locale: String,
     },
 }
 
@@ -257,63 +299,9 @@ pub enum LocaleCommand {
     Delete {
         /// Locale code
         code: String,
-    },
-}
-
-// --- Translations ---
-
-#[derive(Subcommand, Debug)]
-pub enum TranslationCommand {
-    /// List translations for an asset
-    List {
-        /// Asset ID
-        asset_id: String,
-    },
-
-    /// Get a specific translation
-    Get {
-        /// Asset ID
-        asset_id: String,
-        /// Locale code
-        locale: String,
-    },
-
-    /// Set a translation value
-    Set {
-        /// Asset ID
-        asset_id: String,
-        /// Locale code
-        locale: String,
-        /// Translation text
-        #[arg(long)]
-        text: String,
-    },
-
-    /// Delete a translation
-    Delete {
-        /// Asset ID
-        asset_id: String,
-        /// Locale code
-        locale: String,
-    },
-
-    /// Flag a translation
-    Flag {
-        /// Asset ID
-        asset_id: String,
-        /// Locale code
-        locale: String,
-        /// Flag value
-        #[arg(long)]
-        flag: Option<String>,
-    },
-
-    /// Unflag a translation
-    Unflag {
-        /// Asset ID
-        asset_id: String,
-        /// Locale code
-        locale: String,
+        /// Skip confirmation prompt
+        #[arg(short = 'y', long)]
+        force: bool,
     },
 }
 
@@ -342,5 +330,8 @@ pub enum TagCommand {
     Delete {
         /// Tag name
         name: String,
+        /// Skip confirmation prompt
+        #[arg(short = 'y', long)]
+        force: bool,
     },
 }

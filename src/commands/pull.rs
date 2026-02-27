@@ -25,6 +25,8 @@ pub async fn run(
         .or(config.pull.path.as_deref())
         .unwrap_or("./{locale}.{format}");
 
+    warn_unknown_placeholders(output, path_template);
+
     let params = ExportParams {
         format: Some(format.to_string()),
         filter: args.filter.clone(),
@@ -86,6 +88,25 @@ async fn export_all(
     pb.finish_and_clear();
     output.success(&format!("Exported {count} locale(s)"));
     Ok(())
+}
+
+fn warn_unknown_placeholders(output: &Output, template: &str) {
+    let known = ["{locale}", "{format}"];
+    let mut i = 0;
+    let bytes = template.as_bytes();
+    while i < bytes.len() {
+        if bytes[i] == b'{' {
+            if let Some(end) = template[i..].find('}') {
+                let placeholder = &template[i..i + end + 1];
+                if !known.contains(&placeholder) {
+                    output.warn(&format!("Unknown placeholder in path: {placeholder}"));
+                }
+                i += end + 1;
+                continue;
+            }
+        }
+        i += 1;
+    }
 }
 
 fn resolve_path(template: &str, locale: &str, format: &str) -> String {

@@ -87,8 +87,17 @@ async fn init_key(output: &Output) -> Result<()> {
     // Save to config — merge with existing if present
     save_key_to_config(&api_key)?;
     output.success(&format!("API key saved to {CONFIG_FILE}"));
-    output.warn("Add .loco.toml to .gitignore to avoid leaking secrets");
+    warn_gitignore(output);
     Ok(())
+}
+
+fn warn_gitignore(output: &Output) {
+    let in_gitignore = std::fs::read_to_string(".gitignore")
+        .map(|c| c.lines().any(|l| l.trim() == CONFIG_FILE || l.trim() == ".loco.toml"))
+        .unwrap_or(false);
+    if !in_gitignore {
+        output.warn("Add .loco.toml to .gitignore to avoid leaking secrets");
+    }
 }
 
 /// Upsert the `[api] key` in .loco.toml, preserving other sections.

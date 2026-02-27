@@ -14,7 +14,7 @@ use crate::output::Output;
 #[tokio::main]
 async fn main() {
     let cli = cli::Cli::parse();
-    let output = Output::new(cli.json, cli.quiet);
+    let output = Output::new(cli.json, cli.quiet, cli.verbose);
 
     if let Err(e) = commands::run(cli).await {
         let code = exit_code_for(&e);

@@ -13,8 +13,8 @@ use crate::config::ResolvedConfig;
 use crate::error::LocoError;
 use crate::output::Output;
 use clap::CommandFactory;
-use clap_complete::Shell;
 use clap_complete::generate;
+use clap_complete::Shell;
 
 /// Dispatch CLI commands to handlers.
 pub async fn run(cli: Cli) -> anyhow::Result<()> {
@@ -104,7 +104,9 @@ fn install_completions(
             return Ok(());
         }
         _ => {
-            output.warn(&format!("No known install path for {shell:?}. Printing to stdout instead."));
+            output.warn(&format!(
+                "No known install path for {shell:?}. Printing to stdout instead."
+            ));
             generate(shell, cmd, "loco", &mut std::io::stdout());
             return Ok(());
         }

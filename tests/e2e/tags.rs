@@ -4,7 +4,9 @@ use std::time::Duration;
 
 /// Cleanup helper - delete tag, ignore failures.
 fn cleanup_tag(key: &str, name: &str) {
-    let _ = common::e2e_cmd(key).args(["tags", "delete", name, "--force"]).ok();
+    let _ = common::e2e_cmd(key)
+        .args(["tags", "delete", name, "--force"])
+        .ok();
 }
 
 #[tokio::test]

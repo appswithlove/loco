@@ -4,7 +4,9 @@ use std::time::Duration;
 
 /// Cleanup helper - delete locale, ignore failures.
 fn cleanup_locale(key: &str, code: &str) {
-    let _ = common::e2e_cmd(key).args(["locales", "delete", code, "--force"]).ok();
+    let _ = common::e2e_cmd(key)
+        .args(["locales", "delete", code, "--force"])
+        .ok();
 }
 
 #[tokio::test]
@@ -77,8 +79,7 @@ async fn e2e_locale_lifecycle() {
         let val: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
         let arr = val.as_array().expect("should be array");
         assert!(
-            !arr.iter()
-                .any(|l| l["code"].as_str() == Some(locale_code)),
+            !arr.iter().any(|l| l["code"].as_str() == Some(locale_code)),
             "deleted locale should not appear in list"
         );
     }));

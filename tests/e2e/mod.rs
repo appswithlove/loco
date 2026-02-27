@@ -1,7 +1,7 @@
-mod common;
 mod auth;
-mod strings;
+mod common;
 mod locales;
-mod tags;
 mod pull_push;
 mod status;
+mod strings;
+mod tags;

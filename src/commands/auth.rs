@@ -55,9 +55,7 @@ async fn verify(client: &LocoClient, output: &Output) -> Result<()> {
 }
 
 async fn init_key(output: &Output) -> Result<()> {
-    let api_key: String = Input::new()
-        .with_prompt("API key")
-        .interact_text()?;
+    let api_key: String = Input::new().with_prompt("API key").interact_text()?;
 
     if api_key.is_empty() {
         anyhow::bail!("No API key provided");
@@ -93,7 +91,10 @@ async fn init_key(output: &Output) -> Result<()> {
 
 fn warn_gitignore(output: &Output) {
     let in_gitignore = std::fs::read_to_string(".gitignore")
-        .map(|c| c.lines().any(|l| l.trim() == CONFIG_FILE || l.trim() == ".loco.toml"))
+        .map(|c| {
+            c.lines()
+                .any(|l| l.trim() == CONFIG_FILE || l.trim() == ".loco.toml")
+        })
         .unwrap_or(false);
     if !in_gitignore {
         output.warn("Add .loco.toml to .gitignore to avoid leaking secrets");

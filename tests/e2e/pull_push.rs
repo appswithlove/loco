@@ -3,7 +3,9 @@ use predicates::prelude::*;
 
 /// Cleanup helper - delete asset, ignore failures.
 fn cleanup_asset(key: &str, id: &str) {
-    let _ = common::e2e_cmd(key).args(["strings", "delete", id, "--force"]).ok();
+    let _ = common::e2e_cmd(key)
+        .args(["strings", "delete", id, "--force"])
+        .ok();
 }
 
 #[tokio::test]
@@ -23,7 +25,10 @@ async fn e2e_pull_and_push() {
         // 1. Create asset and set translation
         common::e2e_cmd(&key)
             .args([
-                "strings", "set", &id, &format!("en={translation_text}"),
+                "strings",
+                "set",
+                &id,
+                &format!("en={translation_text}"),
                 "--create",
             ])
             .assert()
@@ -33,19 +38,27 @@ async fn e2e_pull_and_push() {
         common::e2e_cmd(&key)
             .args([
                 "pull",
-                "--format", "json",
-                "--locale", "en",
-                "--path", path_template_str,
+                "--format",
+                "json",
+                "--locale",
+                "en",
+                "--path",
+                path_template_str,
             ])
             .assert()
             .success()
             .stderr(predicate::str::contains("Exported"));
 
         // 3. Verify file exists and contains the translation
-        assert!(expected_file.exists(), "pulled file should exist at {:?}", expected_file);
+        assert!(
+            expected_file.exists(),
+            "pulled file should exist at {:?}",
+            expected_file
+        );
 
         let content = std::fs::read_to_string(&expected_file).expect("read pulled file");
-        let val: serde_json::Value = serde_json::from_str(&content).expect("valid JSON in pulled file");
+        let val: serde_json::Value =
+            serde_json::from_str(&content).expect("valid JSON in pulled file");
 
         // The export format puts translations as key-value pairs
         assert!(
@@ -85,11 +98,7 @@ async fn e2e_pull_all_locales() {
 
     // Pull all locales (no --locale flag)
     common::e2e_cmd(&key)
-        .args([
-            "pull",
-            "--format", "json",
-            "--path", path_template_str,
-        ])
+        .args(["pull", "--format", "json", "--path", path_template_str])
         .assert()
         .success()
         .stderr(predicate::str::contains("Exported"));

@@ -23,6 +23,12 @@ async fn e2e_auth_verify_json() {
 
     let stdout = String::from_utf8(output.get_output().stdout.clone()).unwrap();
     let val: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
-    assert!(val["user"]["name"].is_string(), "user.name should be a string");
-    assert!(val["project"]["name"].is_string(), "project.name should be a string");
+    assert!(
+        val["user"]["name"].is_string(),
+        "user.name should be a string"
+    );
+    assert!(
+        val["project"]["name"].is_string(),
+        "project.name should be a string"
+    );
 }

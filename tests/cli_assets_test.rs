@@ -104,9 +104,10 @@ async fn strings_get() {
 
     Mock::given(method("GET"))
         .and(path("/translations/mykey.json"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(json!([
-            translation_json("en", "Hello", true),
-        ])))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!([translation_json("en", "Hello", true),])),
+        )
         .expect(1)
         .mount(&server)
         .await;
@@ -245,9 +246,11 @@ async fn strings_set() {
 
     Mock::given(method("POST"))
         .and(path("/translations/mykey/en"))
-        .respond_with(
-            ResponseTemplate::new(200).set_body_json(translation_json("en", "Hello world", true)),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(translation_json(
+            "en",
+            "Hello world",
+            true,
+        )))
         .expect(1)
         .mount(&server)
         .await;

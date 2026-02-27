@@ -21,7 +21,19 @@ pub async fn run(client: &LocoClient, output: &Output, command: StringCommand) -
             context,
             notes,
             update,
-        } => add(client, output, id, translations, asset_type, context, notes, update).await,
+        } => {
+            add(
+                client,
+                output,
+                id,
+                translations,
+                asset_type,
+                context,
+                notes,
+                update,
+            )
+            .await
+        }
         StringCommand::Delete { id, force } => delete(client, output, &id, force).await,
         StringCommand::Set {
             id,
@@ -179,7 +191,9 @@ async fn add(
             output.success(&format!("Created string: {}", asset.id));
         }
         Err(crate::error::LocoError::Api { status: 409, .. }) if update => {
-            output.info(&format!("String {id} already exists, updating translations"));
+            output.info(&format!(
+                "String {id} already exists, updating translations"
+            ));
         }
         Err(e) => return Err(e.into()),
     }
@@ -206,7 +220,10 @@ async fn add(
 }
 
 async fn delete(client: &LocoClient, output: &Output, id: &str, force: bool) -> Result<()> {
-    if !output.confirm_or_force(&format!("Delete string \"{id}\" and all its translations?"), force) {
+    if !output.confirm_or_force(
+        &format!("Delete string \"{id}\" and all its translations?"),
+        force,
+    ) {
         output.info("Aborted");
         return Ok(());
     }
@@ -286,19 +303,12 @@ async fn flag_string(
     locale: &str,
     flag: Option<String>,
 ) -> Result<()> {
-    client
-        .flag_translation(id, locale, flag.as_deref())
-        .await?;
+    client.flag_translation(id, locale, flag.as_deref()).await?;
     output.success(&format!("Flagged {id}/{locale}"));
     Ok(())
 }
 
-async fn unflag_string(
-    client: &LocoClient,
-    output: &Output,
-    id: &str,
-    locale: &str,
-) -> Result<()> {
+async fn unflag_string(client: &LocoClient, output: &Output, id: &str, locale: &str) -> Result<()> {
     client.unflag_translation(id, locale).await?;
     output.success(&format!("Unflagged {id}/{locale}"));
     Ok(())

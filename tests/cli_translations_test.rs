@@ -77,10 +77,11 @@ async fn strings_set_translation() {
         .and(path("/translations/welcome.title/fr"))
         .and(header("Authorization", &format!("Loco {TEST_KEY}")))
         .and(body_string("Bienvenue"))
-        .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(translation_json("fr", "Bienvenue", true)),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(translation_json(
+            "fr",
+            "Bienvenue",
+            true,
+        )))
         .expect(1)
         .mount(&server)
         .await;
@@ -100,10 +101,11 @@ async fn strings_set_translation_json() {
         .and(path("/translations/welcome.title/fr"))
         .and(header("Authorization", &format!("Loco {TEST_KEY}")))
         .and(body_string("Bienvenue"))
-        .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(translation_json("fr", "Bienvenue", true)),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(translation_json(
+            "fr",
+            "Bienvenue",
+            true,
+        )))
         .expect(1)
         .mount(&server)
         .await;
@@ -128,10 +130,7 @@ async fn strings_rm() {
     Mock::given(method("DELETE"))
         .and(path("/translations/welcome.title/fr"))
         .and(header("Authorization", &format!("Loco {TEST_KEY}")))
-        .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(serde_json::json!({"status": 200})),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({"status": 200})))
         .expect(1)
         .mount(&server)
         .await;
@@ -140,7 +139,9 @@ async fn strings_rm() {
         .args(["strings", "rm", "welcome.title", "fr"])
         .assert()
         .success()
-        .stderr(predicate::str::contains("Removed translation welcome.title/fr"));
+        .stderr(predicate::str::contains(
+            "Removed translation welcome.title/fr",
+        ));
 }
 
 #[tokio::test]
@@ -150,10 +151,7 @@ async fn strings_flag() {
     Mock::given(method("POST"))
         .and(path("/translations/welcome.title/en/flag"))
         .and(header("Authorization", &format!("Loco {TEST_KEY}")))
-        .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(serde_json::json!({"status": 200})),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({"status": 200})))
         .expect(1)
         .mount(&server)
         .await;
@@ -172,10 +170,7 @@ async fn strings_flag_with_value() {
     Mock::given(method("POST"))
         .and(path("/translations/welcome.title/en/flag"))
         .and(header("Authorization", &format!("Loco {TEST_KEY}")))
-        .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(serde_json::json!({"status": 200})),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({"status": 200})))
         .expect(1)
         .mount(&server)
         .await;
@@ -201,10 +196,7 @@ async fn strings_unflag() {
     Mock::given(method("DELETE"))
         .and(path("/translations/welcome.title/en/flag"))
         .and(header("Authorization", &format!("Loco {TEST_KEY}")))
-        .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(serde_json::json!({"status": 200})),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({"status": 200})))
         .expect(1)
         .mount(&server)
         .await;

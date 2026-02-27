@@ -96,8 +96,7 @@ async fn locales_get() {
     Mock::given(method("GET"))
         .and(path("/locales/fr"))
         .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(locale_with_progress("fr", "French", 80, 20)),
+            ResponseTemplate::new(200).set_body_json(locale_with_progress("fr", "French", 80, 20)),
         )
         .expect(1)
         .mount(&server)
@@ -118,8 +117,7 @@ async fn locales_get_json() {
     Mock::given(method("GET"))
         .and(path("/locales/fr"))
         .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(locale_with_progress("fr", "French", 80, 20)),
+            ResponseTemplate::new(200).set_body_json(locale_with_progress("fr", "French", 80, 20)),
         )
         .expect(1)
         .mount(&server)
@@ -143,9 +141,7 @@ async fn locales_create() {
 
     Mock::given(method("POST"))
         .and(path("/locales"))
-        .respond_with(
-            ResponseTemplate::new(200).set_body_json(locale_json("ja", "Japanese")),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(locale_json("ja", "Japanese")))
         .expect(1)
         .mount(&server)
         .await;
@@ -163,9 +159,7 @@ async fn locales_delete() {
 
     Mock::given(method("DELETE"))
         .and(path("/locales/ja"))
-        .respond_with(
-            ResponseTemplate::new(200).set_body_json(serde_json::json!({"status": 200})),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({"status": 200})))
         .expect(1)
         .mount(&server)
         .await;

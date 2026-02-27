@@ -89,7 +89,10 @@ path = "{path}"
 
 fn warn_gitignore(output: &Output) {
     let dominated = std::fs::read_to_string(".gitignore")
-        .map(|c| c.lines().any(|l| l.trim() == CONFIG_FILE || l.trim() == ".loco.toml"))
+        .map(|c| {
+            c.lines()
+                .any(|l| l.trim() == CONFIG_FILE || l.trim() == ".loco.toml")
+        })
         .unwrap_or(false);
     if !dominated {
         output.warn("API key saved to .loco.toml — add it to .gitignore to avoid leaking secrets");

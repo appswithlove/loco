@@ -3,7 +3,9 @@ use predicates::prelude::*;
 
 /// Cleanup helper - delete string, ignore failures.
 fn cleanup_string(key: &str, id: &str) {
-    let _ = common::e2e_cmd(key).args(["strings", "delete", id, "--force"]).ok();
+    let _ = common::e2e_cmd(key)
+        .args(["strings", "delete", id, "--force"])
+        .ok();
 }
 
 #[tokio::test]
@@ -102,9 +104,7 @@ async fn e2e_string_add_with_translations() {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         // Add string with inline translations
         common::e2e_cmd(&key)
-            .args([
-                "strings", "add", &id, "en=hello from add",
-            ])
+            .args(["strings", "add", &id, "en=hello from add"])
             .assert()
             .success();
 
@@ -134,10 +134,7 @@ async fn e2e_string_set_with_create_flag() {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         // Use `strings set --create` which creates the string if missing
         common::e2e_cmd(&key)
-            .args([
-                "strings", "set", &id, "en=auto-created",
-                "--create",
-            ])
+            .args(["strings", "set", &id, "en=auto-created", "--create"])
             .assert()
             .success();
 

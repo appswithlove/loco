@@ -175,6 +175,12 @@ pub enum StringCommand {
         /// Filter by tag
         #[arg(long)]
         filter: Option<String>,
+        /// Filter by locale (use with --status)
+        #[arg(short = 'l', long)]
+        locale: Option<String>,
+        /// Filter by translation status (e.g. untranslated, translated, flagged)
+        #[arg(short = 's', long)]
+        status: Option<String>,
     },
 
     /// Get string details (optionally for a single locale)

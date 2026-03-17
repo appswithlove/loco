@@ -65,8 +65,6 @@ loco status
 
 | Command | Description |
 |---|---|
-| Command | Description |
-|---|---|
 | `init` | Interactive project setup |
 | `pull` | Export translations to local files |
 | `push` | Import local translation files |
@@ -195,6 +193,9 @@ Add translations (LOCALE=TEXT, empty to finish):
 loco strings list
 loco strings list --filter mobile
 
+# List untranslated strings for a locale
+loco strings list --locale fr --status untranslated
+
 # Get string details with all translations
 loco strings get welcome.title
 
@@ -226,7 +227,7 @@ loco strings unflag welcome.title fr
 
 | Subcommand | Description |
 |---|---|
-| `list [--filter TAG]` | List all strings |
+| `list [--filter TAG] [--locale CODE] [--status STATUS]` | List strings, optionally filtered by locale and translation status |
 | `get <ID> [LOCALE]` | Get string details, or a single translation |
 | `add <ID> [LOCALE=TEXT...] [--type --context --notes --update]` | Add a new string with translations |
 | `set <ID> <LOCALE> --text TEXT [--create]` | Set a translation |

@@ -105,6 +105,48 @@ pub struct Translation {
     pub translation: String,
     pub revision: Option<u32>,
     pub modified: Option<String>,
+    /// Locale info — present in array responses as a nested object,
+    /// absent in single-translation responses.
+    #[serde(default, deserialize_with = "deserialize_locale")]
+    pub locale: Option<TranslationLocale>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TranslationLocale {
+    pub code: String,
+    pub name: String,
+}
+
+fn deserialize_locale<'de, D>(deserializer: D) -> Result<Option<TranslationLocale>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::de;
+
+    struct LocaleVisitor;
+
+    impl<'de> de::Visitor<'de> for LocaleVisitor {
+        type Value = Option<TranslationLocale>;
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("a locale object or null")
+        }
+
+        fn visit_none<E: de::Error>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+
+        fn visit_unit<E: de::Error>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+
+        fn visit_map<A: de::MapAccess<'de>>(self, map: A) -> Result<Self::Value, A::Error> {
+            let tl = TranslationLocale::deserialize(de::value::MapAccessDeserializer::new(map))?;
+            Ok(Some(tl))
+        }
+    }
+
+    deserializer.deserialize_any(LocaleVisitor)
 }
 
 /// The Loco API returns `false` when unflagged, or a string like `"fuzzy"` when flagged.

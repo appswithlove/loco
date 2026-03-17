@@ -69,8 +69,8 @@ async fn show_all(client: &LocoClient, output: &Output) -> Result<()> {
 fn progress_numbers(progress: &Option<crate::models::LocaleProgress>) -> (u32, u32) {
     match progress {
         Some(p) => {
-            let translated = p.num_translated.unwrap_or(0);
-            let untranslated = p.num_untranslated.unwrap_or(0);
+            let translated = p.num_translated.or(p.translated).unwrap_or(0);
+            let untranslated = p.num_untranslated.or(p.untranslated).unwrap_or(0);
             (translated, translated + untranslated)
         }
         None => (0, 0),

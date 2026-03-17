@@ -8,7 +8,11 @@ use dialoguer::Input;
 
 pub async fn run(client: &LocoClient, output: &Output, command: StringCommand) -> Result<()> {
     match command {
-        StringCommand::List { filter } => list(client, output, filter).await,
+        StringCommand::List {
+            filter,
+            locale,
+            status,
+        } => list(client, output, filter, locale, status).await,
         StringCommand::Get { id, locale: None } => get_all(client, output, &id).await,
         StringCommand::Get {
             id,
@@ -50,7 +54,17 @@ pub async fn run(client: &LocoClient, output: &Output, command: StringCommand) -
     }
 }
 
-async fn list(client: &LocoClient, output: &Output, filter: Option<String>) -> Result<()> {
+async fn list(
+    client: &LocoClient,
+    output: &Output,
+    filter: Option<String>,
+    locale: Option<String>,
+    status: Option<String>,
+) -> Result<()> {
+    if let Some(ref locale_code) = locale {
+        return list_by_locale(client, output, locale_code, filter, status).await;
+    }
+
     let assets = client.list_assets(filter.as_deref()).await?;
     if output.is_json() {
         output.print_json(&assets)?;
@@ -64,6 +78,37 @@ async fn list(client: &LocoClient, output: &Output, filter: Option<String>) -> R
     Ok(())
 }
 
+async fn list_by_locale(
+    client: &LocoClient,
+    output: &Output,
+    locale: &str,
+    filter: Option<String>,
+    status: Option<String>,
+) -> Result<()> {
+    use crate::client::export::ExportParams;
+    use std::collections::HashMap;
+
+    let params = ExportParams {
+        format: Some("json".to_string()),
+        filter,
+        status,
+        index: None,
+    };
+    let bytes = client.export_locale(locale, "json", &params).await?;
+    let map: HashMap<String, String> = serde_json::from_slice(&bytes)?;
+    let keys: Vec<&String> = map.keys().collect();
+
+    if output.is_json() {
+        output.print_json(&keys)?;
+        return Ok(());
+    }
+    output.info(&format!("{} string(s) for {locale}:", keys.len()));
+    for key in &keys {
+        output.info(&format!("  {key}"));
+    }
+    Ok(())
+}
+
 async fn get_all(client: &LocoClient, output: &Output, id: &str) -> Result<()> {
     let asset = client.get_asset(id).await?;
     let translations = client.get_translations(id).await.unwrap_or_default();
@@ -72,7 +117,8 @@ async fn get_all(client: &LocoClient, output: &Output, id: &str) -> Result<()> {
         let val = serde_json::json!({
             "asset": asset,
             "translations": translations.iter().map(|t| {
-                serde_json::json!({"locale": t.id, "text": t.translation, "translated": t.translated})
+                let locale = t.locale.as_ref().map(|l| l.code.as_str()).unwrap_or(&t.id);
+                serde_json::json!({"locale": locale, "text": t.translation, "translated": t.translated})
             }).collect::<Vec<_>>(),
         });
         output.print_json(&val)?;
@@ -96,7 +142,8 @@ async fn get_all(client: &LocoClient, output: &Output, id: &str) -> Result<()> {
         output.info("Translations:");
         for t in &translations {
             let status = if t.translated { "✓" } else { "·" };
-            output.info(&format!("  {status} {}: {}", t.id, t.translation));
+            let locale = t.locale.as_ref().map(|l| l.code.as_str()).unwrap_or(&t.id);
+            output.info(&format!("  {status} {locale}: {}", t.translation));
         }
     }
     Ok(())
